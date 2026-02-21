@@ -23,6 +23,10 @@ export interface Move {
   // Squares cleared during jump(s); empty for simple moves
   captures: SquareNumber[]
   promotesToKing: boolean
+  // Full sequence of squares occupied during the move, including
+  // from and to. Length > 2 indicates a multi-jump.
+  // e.g. [11, 18, 25] for a double jump landing at 25 via 18.
+  path: SquareNumber[]
 }
 
 export interface HistoryEntry {

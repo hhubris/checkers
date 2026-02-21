@@ -210,6 +210,7 @@ describe('applyMove', () => {
       to: 14,
       captures: [],
       promotesToKing: false,
+      path: [9, 14],
     }
     const next = applyMove(board, move)
     expect(next[9]).toBeNull()
@@ -225,6 +226,7 @@ describe('applyMove', () => {
       to: 18,
       captures: [13],
       promotesToKing: false,
+      path: [9, 18],
     }
     const next = applyMove(board, move)
     expect(next[9]).toBeNull()
@@ -241,6 +243,7 @@ describe('applyMove', () => {
       to: 29,
       captures: [],
       promotesToKing: true,
+      path: [25, 29],
     }
     const next = applyMove(board, move)
     expect(next[29]).toEqual({ color: 'black', isKing: true })
@@ -253,6 +256,7 @@ describe('applyMove', () => {
       to: 14,
       captures: [],
       promotesToKing: false,
+      path: [9, 14],
     }
     applyMove(board, move)
     expect(board[9]).toEqual({ color: 'black', isKing: false })

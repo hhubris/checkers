@@ -34,6 +34,7 @@ function expandJumps(
   color: Color,
   isKing: boolean,
   captures: SquareNumber[],
+  pathSoFar: SquareNumber[],
   visited: Set<SquareNumber>,
 ): Move[] {
   const results: Move[] = []
@@ -49,6 +50,7 @@ function expandJumps(
     if (visited.has(landing)) continue
 
     const newCaptures = [...captures, neighbor]
+    const newPath = [...pathSoFar, landing]
     const promotes = isPromotionSquare(landing, color)
     const newIsKing = isKing || promotes
 
@@ -63,6 +65,7 @@ function expandJumps(
       color,
       newIsKing,
       newCaptures,
+      newPath,
       nextVisited,
     )
 
@@ -72,6 +75,7 @@ function expandJumps(
         to: landing,
         captures: newCaptures,
         promotesToKing: promotes,
+        path: [origin, ...newPath],
       })
     } else {
       results.push(...continuations)
@@ -91,6 +95,7 @@ export function getJumpsFrom(board: Board, square: SquareNumber): Move[] {
     piece.color,
     piece.isKing,
     [],
+    [],
     new Set([square]),
   )
 }
@@ -105,6 +110,7 @@ export function getSimpleMoves(board: Board, square: SquareNumber): Move[] {
       to: dest,
       captures: [],
       promotesToKing: isPromotionSquare(dest, piece.color),
+      path: [square, dest],
     }))
 }
 
