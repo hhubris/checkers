@@ -86,6 +86,24 @@ export function jumpedSquare(
   throw new Error(`Invalid jump: ${from} → ${to}`)
 }
 
+// Validates that the single diagonal step from→to is geometrically legal
+// (correct offset for row parity, not blocked by a board edge).
+export function isValidStep(from: SquareNumber, to: SquareNumber): boolean {
+  if (to < 1 || to > 32) return false
+  const odd = isOddRow(from)
+  const diff = to - from
+  const [ulOff, urOff, llOff, lrOff] = odd
+    ? [-4, -3, 4, 5]
+    : [-5, -4, 3, 4]
+  if (diff === ulOff || diff === llOff) {
+    return !LEFT_EDGE.has(from)
+  }
+  if (diff === urOff || diff === lrOff) {
+    return !RIGHT_EDGE.has(from)
+  }
+  return false
+}
+
 export function isPromotionSquare(
   square: SquareNumber,
   color: Color,
