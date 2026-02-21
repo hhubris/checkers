@@ -22,14 +22,8 @@ Examples:
 - `docs: update stories with phase 2 acceptance criteria`
 - `chore: add eslint and prettier config`
 
-**Branching strategy: one PR per phase.**
-- Create a feature branch at the start of each phase,
-  e.g. `phase/01-scaffold`, `phase/02-engine`
-- Commit each completed story directly to that branch
-- Open a PR to merge the branch into main when all stories
-  in the phase are done
-- The user reviews and merges the PR before the next phase
-  begins
+**Branching strategy: commit directly to main.**
+Commit each completed story directly to main and push.
 
 ## Tool Management
 

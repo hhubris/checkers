@@ -511,9 +511,5 @@ Format: `<type>(<scope>): <description>`
 Scope (optional) should name the affected module, e.g.
 `engine`, `ai`, `board`, `store`, `a11y`.
 
-**Branching strategy: one PR per phase.**
-- Create a feature branch at the start of each phase,
-  e.g. `phase/01-scaffold`, `phase/02-engine`
-- Commit each completed story directly to that branch
-- Open a PR to merge into main when the phase is complete
-- The user reviews and merges before the next phase begins
+**Branching strategy: commit directly to main.**
+Commit each completed story directly to main and push.
