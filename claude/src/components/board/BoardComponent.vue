@@ -40,9 +40,35 @@ const rows = computed(() => {
 
 const selectedSquare = computed(() => game.uiState.selectedSquare)
 
+// Final destinations — clicking these applies the move.
 const targetSquares = computed(
   () => new Set(game.uiState.validMovesForSelected.map((m) => m.to)),
 )
+
+// All path squares (excluding the piece's own square) mapped to their
+// 1-based step number. Only populated when any move is a multi-jump.
+const pathStepNumbers = computed((): Map<SquareNumber, number> => {
+  const moves = game.uiState.validMovesForSelected
+  if (!moves.some((m) => m.path.length > 2)) return new Map()
+  const map = new Map<SquareNumber, number>()
+  for (const move of moves) {
+    for (let i = 1; i < move.path.length; i++) {
+      const sq = move.path[i]!
+      const existing = map.get(sq)
+      if (existing === undefined || i < existing) map.set(sq, i)
+    }
+  }
+  return map
+})
+
+// Intermediate landing squares: in pathStepNumbers but not the final dest.
+const intermediateSquares = computed(() => {
+  const result = new Set<SquareNumber>()
+  for (const [sq] of pathStepNumbers.value) {
+    if (!targetSquares.value.has(sq)) result.add(sq)
+  }
+  return result
+})
 
 const hintedSquares = computed(() => {
   const h = game.uiState.hintedMoves[0]
@@ -178,6 +204,9 @@ async function moveFocus(n: SquareNumber) {
 
 function handleSelect(square: SquareNumber) {
   if (animating.value) return
+  // Intermediate squares are informational — clicking them should not
+  // deselect the piece or attempt an invalid move.
+  if (intermediateSquares.value.has(square)) return
   game.selectSquare(square)
 }
 
@@ -199,7 +228,10 @@ function squareLabel(square: SquareNumber): string {
   if (selectedSquare.value === square) {
     parts.push('selected')
   } else if (targetSquares.value.has(square)) {
-    parts.push('move destination')
+    const step = pathStepNumbers.value.get(square)
+    parts.push(step ? `move destination, step ${step}` : 'move destination')
+  } else if (intermediateSquares.value.has(square)) {
+    parts.push(`jump step ${pathStepNumbers.value.get(square)}`)
   } else if (hintedSquares.value.has(square)) {
     parts.push('hint')
   }
@@ -234,6 +266,8 @@ function squareLabel(square: SquareNumber): string {
         "
         :isSelected="cell.square !== null && cell.square === selectedSquare"
         :isTarget="cell.square !== null && targetSquares.has(cell.square)"
+        :isIntermediate="cell.square !== null && intermediateSquares.has(cell.square)"
+        :stepNumber="cell.square !== null ? pathStepNumbers.get(cell.square) : undefined"
         :isHinted="cell.square !== null && hintedSquares.has(cell.square)"
         :isLastMove="cell.square !== null && lastMoveSquares.has(cell.square)"
         :squareTabindex="

@@ -7,6 +7,8 @@ const props = defineProps<{
   piece: Piece | null
   isSelected: boolean
   isTarget: boolean
+  isIntermediate?: boolean
+  stepNumber?: number
   isHinted: boolean
   isLastMove: boolean
   squareTabindex?: number
@@ -37,6 +39,7 @@ function onFocus() {
       light: square === null,
       selected: isSelected,
       target: isTarget,
+      intermediate: isIntermediate,
       hinted: isHinted,
       'last-move': isLastMove,
     }"
@@ -56,7 +59,14 @@ function onFocus() {
 
     <div v-if="square !== null" class="piece-wrapper">
       <PieceComponent v-if="piece" :piece="piece" :promoted="promoted" />
-      <div v-else-if="isTarget || isHinted" class="move-dot" />
+      <template v-else-if="isTarget || isIntermediate || isHinted">
+        <!-- Numbered step badge for multi-jump paths -->
+        <div v-if="stepNumber !== undefined" class="step-badge" aria-hidden="true">
+          {{ stepNumber }}
+        </div>
+        <!-- Plain dot for single-step targets and hints -->
+        <div v-else class="move-dot" />
+      </template>
     </div>
   </div>
 </template>
@@ -88,6 +98,7 @@ function onFocus() {
 
 .selected::after,
 .target::after,
+.intermediate::after,
 .hinted::after,
 .last-move::after {
   content: '';
@@ -102,7 +113,14 @@ function onFocus() {
 
 .target::after {
   background: var(--highlight);
-  opacity: 0.7;
+  opacity: 0.85;
+}
+
+/* Intermediate squares are on the path but not the final landing —
+   shown dimmer so the player knows to click the final destination. */
+.intermediate::after {
+  background: var(--highlight);
+  opacity: 0.35;
 }
 
 .hinted::after {
@@ -138,5 +156,19 @@ function onFocus() {
   height: 28%;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.25);
+}
+
+.step-badge {
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.7em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 </style>
