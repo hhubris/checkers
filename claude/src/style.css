@@ -1,79 +1,80 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ── Theme variables ─────────────────────────────────────── */
+[data-theme='classic'] {
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+  --piece-red: #cc2200;
+  --piece-black: #1a1a1a;
+  --piece-highlight: rgba(255, 255, 255, 0.25);
+  --piece-crown: #ffd700;
+  --highlight: rgba(255, 255, 80, 0.7);
+  --hint: rgba(0, 210, 100, 0.6);
+  --last-move: rgba(100, 160, 255, 0.35);
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --text: #e0e0e0;
+  --text-muted: #9999aa;
+  --border: #333355;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+[data-theme='ocean'] {
+  --board-light: #cce8f4;
+  --board-dark: #2e6da4;
+  --piece-red: #ffffff;
+  --piece-black: #003366;
+  --piece-highlight: rgba(255, 255, 255, 0.3);
+  --piece-crown: #ffd700;
+  --highlight: rgba(255, 255, 80, 0.7);
+  --hint: rgba(0, 255, 150, 0.55);
+  --last-move: rgba(100, 220, 255, 0.4);
+  --bg: #0a2a4a;
+  --surface: #0d3560;
+  --text: #e0f0ff;
+  --text-muted: #88aacc;
+  --border: #1a4a7a;
 }
-a:hover {
-  color: #535bf2;
+
+/* ── Reset & base ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+/* ── Accessibility ────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
