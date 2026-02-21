@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
+import { useSettingsStore } from '../../stores/settingsStore'
+import { getLegalMoves } from '../../engine/moves'
 import SquareComponent from './SquareComponent.vue'
 import PieceComponent from './PieceComponent.vue'
 import type { Piece, SquareNumber } from '../../types'
 
 const game = useGameStore()
+const settings = useSettingsStore()
 
 // ── Grid helpers ─────────────────────────────────────────────
 
@@ -78,6 +81,20 @@ const hintedSquares = computed(() => {
 const lastMoveSquares = computed(() => {
   const m = game.uiState.lastMove
   return m ? new Set<SquareNumber>([m.from, m.to]) : new Set<SquareNumber>()
+})
+
+// Squares whose pieces have mandatory captures this turn.
+// Only shown to the human player before a piece is selected.
+const mustJumpSquares = computed((): Set<SquareNumber> => {
+  const gs = game.gameState
+  if (!gs || gs.status !== 'playing') return new Set()
+  if (game.uiState.selectedSquare !== null) return new Set()
+  const currentPlayer =
+    gs.currentTurn === 'red' ? settings.redPlayer : settings.blackPlayer
+  if (currentPlayer !== 'human') return new Set()
+  const moves = getLegalMoves(gs)
+  if (!moves.some((m) => m.captures.length > 0)) return new Set()
+  return new Set(moves.filter((m) => m.captures.length > 0).map((m) => m.from))
 })
 
 // ── Animation state ──────────────────────────────────────────
@@ -232,6 +249,8 @@ function squareLabel(square: SquareNumber): string {
     parts.push(step ? `move destination, step ${step}` : 'move destination')
   } else if (intermediateSquares.value.has(square)) {
     parts.push(`jump step ${pathStepNumbers.value.get(square)}`)
+  } else if (mustJumpSquares.value.has(square)) {
+    parts.push('must jump')
   } else if (hintedSquares.value.has(square)) {
     parts.push('hint')
   }
@@ -270,6 +289,7 @@ function squareLabel(square: SquareNumber): string {
         :stepNumber="cell.square !== null ? pathStepNumbers.get(cell.square) : undefined"
         :isHinted="cell.square !== null && hintedSquares.has(cell.square)"
         :isLastMove="cell.square !== null && lastMoveSquares.has(cell.square)"
+        :isMustJump="cell.square !== null && mustJumpSquares.has(cell.square)"
         :squareTabindex="
           cell.square !== null ? (cell.square === focusedSquare ? 0 : -1) : undefined
         "

@@ -11,6 +11,7 @@ const props = defineProps<{
   stepNumber?: number
   isHinted: boolean
   isLastMove: boolean
+  isMustJump?: boolean
   squareTabindex?: number
   ariaLabel?: string
   ariaSelected?: boolean
@@ -42,6 +43,7 @@ function onFocus() {
       intermediate: isIntermediate,
       hinted: isHinted,
       'last-move': isLastMove,
+      'must-jump': isMustJump,
     }"
     :role="square !== null ? 'gridcell' : 'presentation'"
     :aria-label="ariaLabel"
@@ -156,6 +158,36 @@ function onFocus() {
   height: 28%;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.25);
+}
+
+/* ── Must-jump pulse ring ──────────────────────────────────── */
+@keyframes mustJumpPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.must-jump::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  animation: mustJumpPulse 1s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .must-jump::before {
+    animation: none;
+    opacity: 0.8;
+  }
 }
 
 .step-badge {
