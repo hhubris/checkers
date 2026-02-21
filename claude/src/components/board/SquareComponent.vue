@@ -9,12 +9,22 @@ const props = defineProps<{
   isTarget: boolean
   isHinted: boolean
   isLastMove: boolean
+  squareTabindex?: number
+  ariaLabel?: string
+  ariaSelected?: boolean
 }>()
 
-const emit = defineEmits<{ select: [square: number] }>()
+const emit = defineEmits<{
+  select: [square: number]
+  focused: [square: number]
+}>()
 
 function onClick() {
   if (props.square !== null) emit('select', props.square)
+}
+
+function onFocus() {
+  if (props.square !== null) emit('focused', props.square)
 }
 </script>
 
@@ -29,21 +39,22 @@ function onClick() {
       hinted: isHinted,
       'last-move': isLastMove,
     }"
-    :role="square !== null ? 'gridcell' : undefined"
-    :aria-label="square !== null ? `Square ${square}` : undefined"
-    :tabindex="square !== null ? 0 : undefined"
+    :role="square !== null ? 'gridcell' : 'presentation'"
+    :aria-label="ariaLabel"
+    :aria-selected="ariaSelected || undefined"
+    :tabindex="squareTabindex"
+    :data-square="square !== null ? square : undefined"
     @click="onClick"
+    @focus="onFocus"
     @keydown.enter.prevent="onClick"
     @keydown.space.prevent="onClick"
   >
-    <!-- Square number label (debug / orientation aid) -->
     <span v-if="square !== null" class="sq-num" aria-hidden="true">
       {{ square }}
     </span>
 
     <div v-if="square !== null" class="piece-wrapper">
       <PieceComponent v-if="piece" :piece="piece" />
-      <!-- Valid-move dot when no piece occupies a target square -->
       <div v-else-if="isTarget || isHinted" class="move-dot" />
     </div>
   </div>
@@ -74,7 +85,6 @@ function onClick() {
   z-index: 1;
 }
 
-/* Highlight overlays */
 .selected::after,
 .target::after,
 .hinted::after,

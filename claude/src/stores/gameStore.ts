@@ -110,6 +110,14 @@ export const useGameStore = defineStore('game', {
       this.uiState = { ...this.uiState, hintedMoves: [hint] }
     },
 
+    deselect() {
+      this.uiState = {
+        ...this.uiState,
+        selectedSquare: null,
+        validMovesForSelected: [],
+      }
+    },
+
     resetGame() {
       this.gameState = null
       this.uiState = initialUIState()

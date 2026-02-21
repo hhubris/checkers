@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import BoardComponent from '../components/board/BoardComponent.vue'
@@ -7,14 +8,75 @@ import GameStatusBar from '../components/panels/GameStatusBar.vue'
 import MoveHistoryPanel from '../components/panels/MoveHistoryPanel.vue'
 import HintButton from '../components/panels/HintButton.vue'
 import GameOverModal from '../components/panels/GameOverModal.vue'
+import type { HistoryEntry } from '../types'
 
 const game = useGameStore()
 const settings = useSettingsStore()
+const router = useRouter()
 
 onMounted(() => {
   document.documentElement.setAttribute('data-theme', settings.theme)
-  game.startGame()
+  // If no game is in progress (navigated directly), go home.
+  if (!game.gameState) {
+    router.replace('/')
+    return
+  }
 })
+
+// ── ARIA live region ─────────────────────────────────────────
+
+const announcement = ref('')
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function buildAnnouncement(entry: HistoryEntry): string {
+  const { color, move } = entry
+  const cap = move.captures.length
+  const parts: string[] = []
+
+  if (cap === 0) {
+    parts.push(`${capitalize(color)} moves from ${move.from} to ${move.to}.`)
+  } else {
+    const last = move.path[move.path.length - 1]
+    parts.push(
+      `${capitalize(color)} jumps from ${move.path[0]} to ${last}, ` +
+        `${cap} piece${cap > 1 ? 's' : ''} captured.`,
+    )
+  }
+
+  if (move.promotesToKing) {
+    parts.push(`${capitalize(color)} is kinged on square ${move.to}.`)
+  }
+
+  return parts.join(' ')
+}
+
+watch(
+  [
+    () => game.gameState?.moveHistory.length ?? 0,
+    () => game.gameState?.status,
+  ] as const,
+  ([len, status], [prevLen]) => {
+    const gs = game.gameState
+    if (!gs) return
+
+    if (status === 'red-wins') {
+      announcement.value = 'Red wins! Game over.'
+      return
+    }
+    if (status === 'black-wins') {
+      announcement.value = 'Black wins! Game over.'
+      return
+    }
+
+    if (len > (prevLen ?? 0) && gs.moveHistory.length) {
+      const entry = gs.moveHistory[len - 1]
+      if (entry) announcement.value = buildAnnouncement(entry)
+    }
+  },
+)
 </script>
 
 <template>
@@ -30,6 +92,10 @@ onMounted(() => {
       <MoveHistoryPanel />
     </aside>
     <GameOverModal />
+    <!-- Screen reader announcements -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only">
+      {{ announcement }}
+    </div>
   </main>
 </template>
 
@@ -63,7 +129,7 @@ onMounted(() => {
   gap: 0.75rem;
   width: 200px;
   flex-shrink: 0;
-  padding-top: 3.25rem; /* align with board top (below status bar) */
+  padding-top: 3.25rem;
 }
 
 @media (max-width: 640px) {
