@@ -118,9 +118,9 @@ function mainMenu() {
 }
 
 .btn.primary {
-  background: var(--piece-red);
-  color: #fff;
-  border-color: var(--piece-red);
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
 }
 
 .btn.secondary {

@@ -14,6 +14,8 @@
   --text: #e0e0e0;
   --text-muted: #9999aa;
   --border: #333355;
+  --accent: #cc2200;
+  --accent-text: #ffffff;
 }
 
 [data-theme='ocean'] {
@@ -31,6 +33,8 @@
   --text: #e0f0ff;
   --text-muted: #88aacc;
   --border: #1a4a7a;
+  --accent: #1a7cc9;
+  --accent-text: #ffffff;
 }
 
 /* ── Reset & base ─────────────────────────────────────────── */

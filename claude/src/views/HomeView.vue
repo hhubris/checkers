@@ -350,8 +350,8 @@ function startGame() {
 .start-btn {
   margin-top: 0.25rem;
   padding: 0.7rem;
-  background: var(--piece-red);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: 6px;
   font-size: 1rem;
