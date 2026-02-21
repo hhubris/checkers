@@ -140,6 +140,17 @@ describe('getJumpsFrom', () => {
     const jumps = getJumpsFrom(board, 15)
     expect(jumps.some((m) => m.to === 22)).toBe(true)
   })
+
+  it('jump that kings a piece ends the sequence immediately', () => {
+    // Black on 23 (even, row 6) jumps red on 26 → lands on 30 (promotion).
+    // Red on 25 sits one step back from 30, reachable only by a king moving
+    // backward. The sequence must stop at 30; the red on 25 must NOT be
+    // included as a continuation.
+    const board = sparse([[23, 'black'], [26, 'red'], [25, 'red']])
+    const jumps = getJumpsFrom(board, 23)
+    expect(jumps).toHaveLength(1)
+    expect(jumps[0]).toMatchObject({ to: 30, captures: [26], promotesToKing: true })
+  })
 })
 
 // ── getLegalMoves ─────────────────────────────────────────────────────

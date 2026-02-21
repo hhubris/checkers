@@ -52,18 +52,29 @@ function expandJumps(
     const newCaptures = [...captures, neighbor]
     const newPath = [...pathSoFar, landing]
     const promotes = isPromotionSquare(landing, color)
-    const newIsKing = isKing || promotes
 
     const nextVisited = new Set(visited)
     nextVisited.add(neighbor)
     nextVisited.add(square)
+
+    // A piece that is kinged mid-sequence must stop — the turn ends there.
+    if (promotes) {
+      results.push({
+        from: origin,
+        to: landing,
+        captures: newCaptures,
+        promotesToKing: true,
+        path: [origin, ...newPath],
+      })
+      continue
+    }
 
     const continuations = expandJumps(
       board,
       origin,
       landing,
       color,
-      newIsKing,
+      isKing,
       newCaptures,
       newPath,
       nextVisited,
@@ -74,7 +85,7 @@ function expandJumps(
         from: origin,
         to: landing,
         captures: newCaptures,
-        promotesToKing: promotes,
+        promotesToKing: false,
         path: [origin, ...newPath],
       })
     } else {
