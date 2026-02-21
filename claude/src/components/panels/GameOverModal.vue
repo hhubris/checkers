@@ -42,6 +42,26 @@ function mainMenu() {
 </template>
 
 <style scoped>
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -50,6 +70,7 @@ function mainMenu() {
   align-items: center;
   justify-content: center;
   z-index: 100;
+  animation: overlayIn 0.2s ease both;
 }
 
 .modal {
@@ -60,6 +81,7 @@ function mainMenu() {
   text-align: center;
   min-width: 240px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) both;
 }
 
 .winner-text {

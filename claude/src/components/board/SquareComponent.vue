@@ -12,6 +12,7 @@ const props = defineProps<{
   squareTabindex?: number
   ariaLabel?: string
   ariaSelected?: boolean
+  promoted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -54,7 +55,7 @@ function onFocus() {
     </span>
 
     <div v-if="square !== null" class="piece-wrapper">
-      <PieceComponent v-if="piece" :piece="piece" />
+      <PieceComponent v-if="piece" :piece="piece" :promoted="promoted" />
       <div v-else-if="isTarget || isHinted" class="move-dot" />
     </div>
   </div>

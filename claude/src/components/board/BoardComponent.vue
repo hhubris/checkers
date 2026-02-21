@@ -2,19 +2,28 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
 import SquareComponent from './SquareComponent.vue'
-import type { SquareNumber } from '../../types'
+import PieceComponent from './PieceComponent.vue'
+import type { Piece, SquareNumber } from '../../types'
 
 const game = useGameStore()
 
-// Returns the checkers square number (1–32) for a grid cell,
-// or null for a light (non-playable) square.
+// ── Grid helpers ─────────────────────────────────────────────
+
 function squareAt(row: number, col: number): SquareNumber | null {
   if ((row + col) % 2 === 0) return null
   const darkIndex = row % 2 === 0 ? (col - 1) / 2 : col / 2
   return row * 4 + darkIndex + 1
 }
 
-// Nested rows for role="row" wrapping.
+// Compute the top-left corner of a square as a % of board size.
+function squareGridPos(sq: SquareNumber) {
+  const idx = sq - 1
+  const row = Math.floor(idx / 4)
+  const darkIndex = idx % 4
+  const col = row % 2 === 0 ? darkIndex * 2 + 1 : darkIndex * 2
+  return { x: col * 12.5, y: row * 12.5 }
+}
+
 const rows = computed(() => {
   const result: { key: string; square: SquareNumber | null }[][] = []
   for (let row = 0; row < 8; row++) {
@@ -26,6 +35,8 @@ const rows = computed(() => {
   }
   return result
 })
+
+// ── Highlight state ──────────────────────────────────────────
 
 const selectedSquare = computed(() => game.uiState.selectedSquare)
 
@@ -43,26 +54,91 @@ const lastMoveSquares = computed(() => {
   return m ? new Set<SquareNumber>([m.from, m.to]) : new Set<SquareNumber>()
 })
 
+// ── Animation state ──────────────────────────────────────────
+
+const animating = ref(false)
+const flyingPiece = ref<Piece | null>(null)
+const flyingX = ref(0)
+const flyingY = ref(0)
+const flyingTransition = ref(false)
+const hiddenSquares = ref(new Set<SquareNumber>())
+const promotedSquare = ref<SquareNumber | null>(null)
+let animToken = 0
+
+function doubleRaf(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  )
+}
+
 // ── Roving tabindex ──────────────────────────────────────────
 
 const focusedSquare = ref<SquareNumber>(1)
 
 function focusDomSquare(n: SquareNumber) {
-  const el = document.querySelector<HTMLElement>(`[data-square="${n}"]`)
-  el?.focus()
+  document.querySelector<HTMLElement>(`[data-square="${n}"]`)?.focus()
 }
 
-async function moveFocus(n: SquareNumber) {
-  focusedSquare.value = n
-  await nextTick()
-  focusDomSquare(n)
-}
+// ── Combined lastMove watcher: animation + focus ─────────────
 
-// After a move, follow the piece to its destination.
 watch(
   () => game.uiState.lastMove,
-  (move) => {
-    if (move) moveFocus(move.to)
+  async (move) => {
+    if (!move) return
+    const gs = game.gameState
+    if (!gs) return
+    const piece = gs.board[move.to]
+    if (!piece) return
+
+    // Update keyboard focus index immediately (tabindex updates next render).
+    focusedSquare.value = move.to
+
+    const token = ++animToken
+    animating.value = true
+    hiddenSquares.value = new Set([move.to])
+    promotedSquare.value = null
+
+    for (let i = 0; i < move.path.length - 1; i++) {
+      const from = move.path[i]!
+      const to = move.path[i + 1]!
+      const fromPos = squareGridPos(from)
+      const toPos = squareGridPos(to)
+
+      // During flight show the pre-promotion state (no crown yet).
+      flyingPiece.value = move.promotesToKing
+        ? { ...piece, isKing: false }
+        : piece
+      flyingX.value = fromPos.x
+      flyingY.value = fromPos.y
+      flyingTransition.value = false
+
+      await doubleRaf()
+      if (token !== animToken) return
+
+      flyingTransition.value = true
+      flyingX.value = toPos.x
+      flyingY.value = toPos.y
+
+      await new Promise((r) => setTimeout(r, 265))
+      if (token !== animToken) return
+    }
+
+    // Land: reveal real piece, trigger crown animation if kinged.
+    flyingPiece.value = null
+    flyingTransition.value = false
+    hiddenSquares.value = new Set()
+    animating.value = false
+
+    if (move.promotesToKing) {
+      promotedSquare.value = move.to
+      setTimeout(() => {
+        if (token === animToken) promotedSquare.value = null
+      }, 700)
+    }
+
+    // Move DOM focus after animation completes.
+    await nextTick()
+    focusDomSquare(move.to)
   },
 )
 
@@ -94,7 +170,14 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
+async function moveFocus(n: SquareNumber) {
+  focusedSquare.value = n
+  await nextTick()
+  focusDomSquare(n)
+}
+
 function handleSelect(square: SquareNumber) {
+  if (animating.value) return
   game.selectSquare(square)
 }
 
@@ -142,17 +225,37 @@ function squareLabel(square: SquareNumber): string {
         v-for="cell in rowCells"
         :key="cell.key"
         :square="cell.square"
-        :piece="cell.square !== null ? (game.gameState?.board[cell.square] ?? null) : null"
+        :piece="
+          cell.square !== null
+            ? hiddenSquares.has(cell.square)
+              ? null
+              : (game.gameState?.board[cell.square] ?? null)
+            : null
+        "
         :isSelected="cell.square !== null && cell.square === selectedSquare"
         :isTarget="cell.square !== null && targetSquares.has(cell.square)"
         :isHinted="cell.square !== null && hintedSquares.has(cell.square)"
         :isLastMove="cell.square !== null && lastMoveSquares.has(cell.square)"
-        :squareTabindex="cell.square !== null ? (cell.square === focusedSquare ? 0 : -1) : undefined"
+        :squareTabindex="
+          cell.square !== null ? (cell.square === focusedSquare ? 0 : -1) : undefined
+        "
         :ariaLabel="cell.square !== null ? squareLabel(cell.square) : undefined"
         :ariaSelected="cell.square !== null && cell.square === selectedSquare"
+        :promoted="cell.square !== null && cell.square === promotedSquare"
         @select="handleSelect"
         @focused="handleFocused"
       />
+    </div>
+
+    <!-- Absolutely-positioned overlay for movement animation -->
+    <div
+      v-if="flyingPiece"
+      class="flying-piece"
+      :class="{ 'fly-go': flyingTransition }"
+      :style="{ left: flyingX + '%', top: flyingY + '%' }"
+      aria-hidden="true"
+    >
+      <PieceComponent :piece="flyingPiece" />
     </div>
   </div>
 </template>
@@ -167,11 +270,30 @@ function squareLabel(square: SquareNumber): string {
   border-radius: 2px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
-/* display:contents keeps the 8×8 grid layout intact
-   while preserving role="row" in the accessibility tree. */
+/* display:contents keeps 8×8 grid intact while
+   preserving role="row" in the accessibility tree. */
 .board-row {
   display: contents;
+}
+
+/* Flying piece overlay */
+.flying-piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.flying-piece.fly-go {
+  transition:
+    left 0.25s ease-out,
+    top 0.25s ease-out;
 }
 </style>
