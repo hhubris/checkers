@@ -13,6 +13,7 @@ const visible = computed(
 const winnerText = computed(() => {
   if (game.gameState?.status === 'red-wins') return 'Red wins!'
   if (game.gameState?.status === 'black-wins') return 'Black wins!'
+  if (game.gameState?.status === 'draw') return "It's a draw!"
   return ''
 })
 

@@ -70,6 +70,10 @@ watch(
       announcement.value = 'Black wins! Game over.'
       return
     }
+    if (status === 'draw') {
+      announcement.value = "It's a draw! Game over."
+      return
+    }
 
     if (len > (prevLen ?? 0) && gs.moveHistory.length) {
       const entry = gs.moveHistory[len - 1]

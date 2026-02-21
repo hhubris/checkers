@@ -9,6 +9,7 @@ const statusText = computed(() => {
   if (!s) return ''
   if (s.status === 'red-wins') return 'Red wins!'
   if (s.status === 'black-wins') return 'Black wins!'
+  if (s.status === 'draw') return 'Draw!'
   if (game.uiState.isAIThinking) return 'AI is thinking…'
   return s.currentTurn === 'red' ? "Red's turn" : "Black's turn"
 })

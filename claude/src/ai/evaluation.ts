@@ -47,6 +47,7 @@ export function evaluate(board: Board, color: Color): number {
     status: 'playing',
     capturedByRed: 0,
     capturedByBlack: 0,
+    movesSinceCapture: 0,
   }
   const blackState: GameState = { ...redState, currentTurn: 'black' }
   const redMobility = getLegalMoves(redState).length

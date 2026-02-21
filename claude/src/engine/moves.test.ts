@@ -12,6 +12,7 @@ function state(board: Board, turn: GameState['currentTurn'] = 'black'): GameStat
     status: 'playing',
     capturedByRed: 0,
     capturedByBlack: 0,
+    movesSinceCapture: 0,
   }
 }
 

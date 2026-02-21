@@ -1,6 +1,6 @@
 export type Color = 'red' | 'black'
 export type Difficulty = 'easy' | 'medium' | 'hard'
-export type GameStatus = 'playing' | 'red-wins' | 'black-wins'
+export type GameStatus = 'playing' | 'red-wins' | 'black-wins' | 'draw'
 export type PlayMode = 'hvh' | 'hva' | 'ava'
 export type PlayerType = 'human' | 'ai'
 export type ThemeId = 'classic' | 'ocean'
@@ -43,6 +43,8 @@ export interface GameState {
   status: GameStatus
   capturedByRed: number
   capturedByBlack: number
+  // Consecutive half-moves without a capture; draw is declared at the limit.
+  movesSinceCapture: number
 }
 
 export interface UIState {

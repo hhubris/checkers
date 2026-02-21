@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createInitialGameState, applyMoveToState } from './gameState'
+import { createInitialGameState, applyMoveToState, DRAW_MOVE_LIMIT } from './gameState'
 import { getLegalMoves } from './moves'
 
 describe('createInitialGameState', () => {
@@ -93,5 +93,15 @@ describe('applyMoveToState', () => {
     const s0 = createInitialGameState()
     const s1 = applyMoveToState(s0, getLegalMoves(s0)[0]!)
     expect(s1.status).toBe('playing')
+  })
+
+  it('declares draw after DRAW_MOVE_LIMIT non-capture half-moves', () => {
+    // Pre-set the counter one below the limit, then apply a non-capture move.
+    const s0 = createInitialGameState()
+    s0.movesSinceCapture = DRAW_MOVE_LIMIT - 1
+    const moves = getLegalMoves(s0).filter((m) => m.captures.length === 0)
+    expect(moves.length).toBeGreaterThan(0)
+    const s1 = applyMoveToState(s0, moves[0]!)
+    expect(s1.status).toBe('draw')
   })
 })

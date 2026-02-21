@@ -23,6 +23,7 @@ function minimax(
     status: 'playing',
     capturedByRed: 0,
     capturedByBlack: 0,
+    movesSinceCapture: 0,
   }
   const moves = getLegalMoves(state)
 

@@ -3,6 +3,9 @@ import { applyMove, createInitialBoard } from './board'
 import { getLegalMoves } from './moves'
 import { toNotation } from './notation'
 
+// American checkers draw rule: 40 consecutive half-moves without a capture.
+export const DRAW_MOVE_LIMIT = 40
+
 export function createInitialGameState(): GameState {
   return {
     board: createInitialBoard(),
@@ -11,6 +14,7 @@ export function createInitialGameState(): GameState {
     status: 'playing',
     capturedByRed: 0,
     capturedByBlack: 0,
+    movesSinceCapture: 0,
   }
 }
 
@@ -22,7 +26,7 @@ function detectStatus(
   state: GameState,
   nextTurn: Color,
 ): GameState['status'] {
-  // Check if the next player has any pieces
+  // Win: next player has no pieces remaining.
   const hasPieces = state.board.some(
     (p) => p !== null && p.color === nextTurn,
   )
@@ -30,11 +34,15 @@ function detectStatus(
     return nextTurn === 'black' ? 'red-wins' : 'black-wins'
   }
 
-  // Check if the next player has any legal moves
+  // Win: next player has no legal moves.
   const nextState: GameState = { ...state, currentTurn: nextTurn }
-  const moves = getLegalMoves(nextState)
-  if (moves.length === 0) {
+  if (getLegalMoves(nextState).length === 0) {
     return nextTurn === 'black' ? 'red-wins' : 'black-wins'
+  }
+
+  // Draw: 40 consecutive half-moves without a capture.
+  if (state.movesSinceCapture >= DRAW_MOVE_LIMIT) {
+    return 'draw'
   }
 
   return 'playing'
@@ -62,6 +70,9 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     state.capturedByBlack +
     (state.currentTurn === 'black' ? move.captures.length : 0)
 
+  const movesSinceCapture =
+    move.captures.length > 0 ? 0 : state.movesSinceCapture + 1
+
   const partial: GameState = {
     board: nextBoard,
     currentTurn: nextTurn,
@@ -69,6 +80,7 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     status: 'playing',
     capturedByRed,
     capturedByBlack,
+    movesSinceCapture,
   }
 
   return { ...partial, status: detectStatus(partial, nextTurn) }

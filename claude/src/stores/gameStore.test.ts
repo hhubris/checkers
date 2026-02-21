@@ -10,6 +10,8 @@ beforeEach(() => {
 
 describe('gameStore — startGame', () => {
   it('produces a valid initial GameState', () => {
+    const settings = useSettingsStore()
+    settings.setPlayers({ redPlayer: 'human', blackPlayer: 'human' })
     const store = useGameStore()
     store.startGame()
     expect(store.gameState).not.toBeNull()
