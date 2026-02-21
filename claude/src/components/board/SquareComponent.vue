@@ -90,6 +90,7 @@ function onFocus() {
 .dark {
   background-color: var(--board-dark);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .dark:focus-visible {

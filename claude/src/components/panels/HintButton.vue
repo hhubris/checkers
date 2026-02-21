@@ -24,6 +24,7 @@ const visible = computed(() => {
 <style scoped>
 .hint-btn {
   padding: 0.4rem 1rem;
+  min-height: 44px;
   background: transparent;
   border: 1px solid var(--hint);
   border-radius: 4px;
@@ -31,6 +32,7 @@ const visible = computed(() => {
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
+  touch-action: manipulation;
   transition:
     background 0.15s,
     color 0.15s;

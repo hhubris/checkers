@@ -64,6 +64,12 @@ watch(
   scroll-behavior: smooth;
 }
 
+@media (max-width: 640px) {
+  .history-list {
+    max-height: 130px;
+  }
+}
+
 .entry {
   display: flex;
   align-items: center;

@@ -140,11 +140,21 @@ watch(
   .game-view {
     flex-direction: column;
     align-items: center;
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .board-area {
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .board-footer {
+    min-height: 1.5rem;
   }
 
   .side-panel {
     width: 100%;
-    max-width: min(80vh, 100%);
     padding-top: 0;
   }
 }

@@ -304,11 +304,13 @@ function startGame() {
   align-items: center;
   gap: 0.35rem;
   padding: 0.4rem 0.85rem;
+  min-height: 44px;
   border-radius: 5px;
   border: 1px solid var(--border);
   color: var(--text-muted);
   font-size: 0.875rem;
   cursor: pointer;
+  touch-action: manipulation;
   transition:
     background 0.12s,
     border-color 0.12s,
@@ -350,6 +352,7 @@ function startGame() {
 .start-btn {
   margin-top: 0.25rem;
   padding: 0.7rem;
+  min-height: 48px;
   background: var(--accent);
   color: var(--accent-text);
   border: none;
@@ -357,12 +360,20 @@ function startGame() {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
   transition: opacity 0.15s;
   letter-spacing: 0.02em;
 }
 
 .start-btn:hover {
   opacity: 0.88;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1.25rem 1rem;
+    gap: 1.1rem;
+  }
 }
 
 /* ── Accessibility ────────────────────────────────────────── */
