@@ -4,3 +4,23 @@ gh = "2.87.2"
 
 [settings]
 aqua.github_attestations = false
+
+[tasks.dev]
+description = "Start the Vite dev server"
+run = "npm run dev"
+
+[tasks.test]
+description = "Run unit tests"
+run = "npm test"
+
+[tasks.test-watch]
+description = "Run unit tests in watch mode"
+run = "npm run test:watch"
+
+[tasks.build]
+description = "Type-check and build for production"
+run = "npm run build"
+
+[tasks.lint]
+description = "Lint the source"
+run = "npm run lint"
