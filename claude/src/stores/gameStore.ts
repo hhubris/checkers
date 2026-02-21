@@ -4,9 +4,51 @@ import { createInitialGameState, applyMoveToState } from '../engine/gameState'
 import { getLegalMoves } from '../engine/moves'
 import { getAIMove } from '../ai/index'
 import { getHeuristicMove } from '../ai/heuristic'
-import type { GameState, Move, SquareNumber, UIState } from '../types'
+import type { Difficulty, GameState, Move, SquareNumber, UIState } from '../types'
 
 const AI_MIN_DELAY_MS = 400
+
+// ── Web Worker management ────────────────────────────────────
+// Kept outside the Pinia store because Worker instances are
+// non-serializable and should not be reactive.
+
+let aiWorker: Worker | null = null
+let workerToken = 0
+
+function getWorker(): Worker {
+  if (!aiWorker) {
+    aiWorker = new Worker(new URL('../ai/worker.ts', import.meta.url), {
+      type: 'module',
+    })
+  }
+  return aiWorker
+}
+
+function terminateWorker() {
+  if (aiWorker) {
+    aiWorker.terminate()
+    aiWorker = null
+  }
+  // Increment token so any in-flight promise is silently ignored.
+  workerToken++
+}
+
+function askWorker(state: GameState, difficulty: Difficulty): Promise<Move> {
+  const token = ++workerToken
+  const worker = getWorker()
+
+  return new Promise<Move>((resolve, reject) => {
+    worker.onmessage = (e: MessageEvent<{ move: Move }>) => {
+      if (workerToken === token) resolve(e.data.move)
+    }
+    worker.onerror = (e) => {
+      if (workerToken === token) reject(new Error(e.message))
+    }
+    worker.postMessage({ state, difficulty })
+  })
+}
+
+// ── Store ────────────────────────────────────────────────────
 
 function initialUIState(): UIState {
   return {
@@ -26,6 +68,7 @@ export const useGameStore = defineStore('game', {
 
   actions: {
     startGame() {
+      terminateWorker()
       this.gameState = createInitialGameState()
       this.uiState = initialUIState()
 
@@ -91,21 +134,30 @@ export const useGameStore = defineStore('game', {
           : settings.blackDifficulty
 
       const stateCopy = this.gameState
-      const [move] = await Promise.all([
-        Promise.resolve(getAIMove(stateCopy, difficulty)),
-        new Promise((r) => setTimeout(r, AI_MIN_DELAY_MS)),
-      ])
 
-      // State may have changed while we waited (e.g. game reset)
+      let move: Move
+      try {
+        const [result] = await Promise.all([
+          askWorker(stateCopy, difficulty),
+          new Promise<void>((r) => setTimeout(r, AI_MIN_DELAY_MS)),
+        ])
+        move = result
+      } catch {
+        // Worker failed (e.g. unsupported environment) — run on main thread.
+        move = getAIMove(stateCopy, difficulty)
+      }
+
+      // Game was reset or a new game started while we were waiting.
       if (!this.gameState || this.gameState !== stateCopy) return
 
       this.uiState = { ...this.uiState, isAIThinking: false }
-      this._applyMove(move as Move)
+      this._applyMove(move)
     },
 
     requestHint() {
       const gs = this.gameState
       if (!gs || gs.status !== 'playing') return
+      // Hints use the fast heuristic — no need for a worker.
       const hint = getHeuristicMove(gs)
       this.uiState = { ...this.uiState, hintedMoves: [hint] }
     },
@@ -119,6 +171,7 @@ export const useGameStore = defineStore('game', {
     },
 
     resetGame() {
+      terminateWorker()
       this.gameState = null
       this.uiState = initialUIState()
     },
