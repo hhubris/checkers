@@ -58,8 +58,8 @@ export function getMoveDiagonals(
   color: Color,
   isKing: boolean,
 ): SquareNumber[] {
-  const forward = color === 'black' ? 'lower' : 'upper'
-  const backward = color === 'black' ? 'upper' : 'lower'
+  const forward: 'upper' | 'lower' = color === 'black' ? 'lower' : 'upper'
+  const backward: 'upper' | 'lower' = color === 'black' ? 'upper' : 'lower'
   const dirs = isKing ? [forward, backward] : [forward]
   return dirs.flatMap((d) => diagonalsInDir(square, d))
 }

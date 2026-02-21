@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getSimpleMoves, getJumpsFrom, getLegalMoves } from './moves'
-import { createInitialBoard, cloneBoard } from './board'
+import { createInitialBoard } from './board'
 import type { Board, GameState } from '../types'
 
 // Minimal GameState builder for tests
