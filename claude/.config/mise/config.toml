@@ -1,2 +1,6 @@
 [tools]
 node = "22.22.0"
+gh = "2.87.2"
+
+[settings]
+aqua.github_attestations = false
