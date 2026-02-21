@@ -143,7 +143,9 @@ export const useGameStore = defineStore('game', {
         ])
         move = result
       } catch {
-        // Worker failed (e.g. unsupported environment) — run on main thread.
+        // Worker failed — keep the minimum delay so Vue can render each
+        // move before the next one begins, even on the main thread.
+        await new Promise<void>((r) => setTimeout(r, AI_MIN_DELAY_MS))
         move = getAIMove(stateCopy, difficulty)
       }
 

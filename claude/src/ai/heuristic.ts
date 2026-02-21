@@ -12,17 +12,20 @@ export function getHeuristicMove(state: GameState): Move {
     throw new Error('getHeuristicMove called with no legal moves')
   }
 
-  let bestMove = moves[0]!
   let bestScore = -Infinity
+  const topMoves: Move[] = []
 
   for (const move of moves) {
     const nextBoard = applyMove(state.board, move)
     const score = evaluate(nextBoard, state.currentTurn)
     if (score > bestScore) {
       bestScore = score
-      bestMove = move
+      topMoves.length = 0
+      topMoves.push(move)
+    } else if (score === bestScore) {
+      topMoves.push(move)
     }
   }
 
-  return bestMove
+  return topMoves[Math.floor(Math.random() * topMoves.length)]!
 }

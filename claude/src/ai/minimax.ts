@@ -78,8 +78,8 @@ export function getMinimaxMove(state: GameState, depth = 8): Move {
     throw new Error('getMinimaxMove called with no legal moves')
   }
 
-  let bestMove = moves[0]!
   let bestScore = -Infinity
+  const topMoves: Move[] = []
 
   for (const move of moves) {
     const nextBoard = applyMove(state.board, move)
@@ -93,9 +93,12 @@ export function getMinimaxMove(state: GameState, depth = 8): Move {
     )
     if (score > bestScore) {
       bestScore = score
-      bestMove = move
+      topMoves.length = 0
+      topMoves.push(move)
+    } else if (score === bestScore) {
+      topMoves.push(move)
     }
   }
 
-  return bestMove
+  return topMoves[Math.floor(Math.random() * topMoves.length)]!
 }
