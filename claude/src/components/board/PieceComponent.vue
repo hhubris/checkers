@@ -15,37 +15,102 @@ defineProps<{ piece: Piece; promoted?: boolean }>()
 </template>
 
 <style scoped>
+/* ── Base disc ───────────────────────────────────────────────── */
 .piece {
-  width: 78%;
-  height: 78%;
+  width: 80%;
+  height: 80%;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px var(--piece-highlight);
-  transition: transform 0.15s ease;
-  pointer-events: none;
   position: relative;
+  pointer-events: none;
+  transition: transform 0.12s ease;
 }
 
+/* ── Dome highlight — a bright elliptical sheen upper-left ───── */
+.piece::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 52% 44% at 36% 26%,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.22) 38%,
+    transparent 66%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Concentric inner ring — gives the piece a "checker" groove ─ */
+.piece::after {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.18);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Red piece ───────────────────────────────────────────────── */
 .piece.red {
-  background: radial-gradient(circle at 35% 35%, #ff5533, var(--piece-red));
+  background: radial-gradient(
+    circle at 37% 31%,
+    var(--piece-red-hi) 0%,
+    var(--piece-red) 42%,
+    var(--piece-red-lo) 78%,
+    var(--piece-red-rim) 100%
+  );
+  box-shadow:
+    /* concave rim — bottom darkens to show curvature */
+    inset 0 -5px 10px rgba(0, 0, 0, 0.45),
+    /* top-edge rim glint */
+    inset 0 2px 3px rgba(255, 200, 170, 0.22),
+    /* disc thickness — darker "side" below the piece */
+    0 4px 0 var(--piece-red-rim),
+    /* drop shadow on the board */
+    0 5px 14px rgba(0, 0, 0, 0.55);
 }
 
+/* ── Black piece ─────────────────────────────────────────────── */
 .piece.black {
-  background: radial-gradient(circle at 35% 35%, #555, var(--piece-black));
+  background: radial-gradient(
+    circle at 37% 31%,
+    var(--piece-black-hi) 0%,
+    var(--piece-black) 42%,
+    var(--piece-black-lo) 78%,
+    var(--piece-black-rim) 100%
+  );
+  box-shadow:
+    inset 0 -5px 10px rgba(0, 0, 0, 0.6),
+    inset 0 2px 3px rgba(255, 255, 255, 0.07),
+    0 4px 0 var(--piece-black-rim),
+    0 5px 14px rgba(0, 0, 0, 0.6);
 }
 
+/* ── King — gold ring inside the concentric groove ───────────── */
+.piece.king::after {
+  border-color: rgba(255, 210, 0, 0.55);
+  border-width: 2px;
+  inset: 16%;
+}
+
+/* ── Crown label ─────────────────────────────────────────────── */
 .crown {
-  font-size: 0.9em;
+  font-size: 0.85em;
   color: var(--piece-crown);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    0 0 6px rgba(255, 200, 0, 0.4);
   line-height: 1;
+  position: relative;
+  z-index: 3;
 }
 
-/* Crown bounces in only when the piece has just been promoted. */
+/* ── Kinging animation ───────────────────────────────────────── */
 @keyframes crownBounce {
   0% {
     opacity: 0;

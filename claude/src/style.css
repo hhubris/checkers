@@ -16,6 +16,13 @@
   --border: #333355;
   --accent: #cc2200;
   --accent-text: #ffffff;
+  /* Piece gradient stops */
+  --piece-red-hi: #ff7755;
+  --piece-red-lo: #7a0d00;
+  --piece-red-rim: #320300;
+  --piece-black-hi: #585858;
+  --piece-black-lo: #080808;
+  --piece-black-rim: #000000;
 }
 
 [data-theme='ocean'] {
@@ -35,6 +42,13 @@
   --border: #1a4a7a;
   --accent: #1a7cc9;
   --accent-text: #ffffff;
+  /* Piece gradient stops — "red"=white, "black"=navy */
+  --piece-red-hi: #ffffff;
+  --piece-red-lo: #bdd0de;
+  --piece-red-rim: #7a99ae;
+  --piece-black-hi: #2266aa;
+  --piece-black-lo: #001633;
+  --piece-black-rim: #000a1a;
 }
 
 /* ── Reset & base ─────────────────────────────────────────── */
