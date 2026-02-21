@@ -3,6 +3,7 @@ import { computed, ref, watch, nextTick } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { getLegalMoves } from '../../engine/moves'
+import { playMove, playCapture, playKing } from '../../sound'
 import SquareComponent from './SquareComponent.vue'
 import PieceComponent from './PieceComponent.vue'
 import type { Piece, SquareNumber } from '../../types'
@@ -133,6 +134,10 @@ watch(
     const piece = gs.board[move.to]
     if (!piece) return
 
+    // Play sound immediately as the move begins.
+    if (move.captures.length > 0) playCapture()
+    else playMove()
+
     // Update keyboard focus index immediately (tabindex updates next render).
     focusedSquare.value = move.to
 
@@ -173,6 +178,7 @@ watch(
     animating.value = false
 
     if (move.promotesToKing) {
+      playKing()
       promotedSquare.value = move.to
       setTimeout(() => {
         if (token === animToken) promotedSquare.value = null

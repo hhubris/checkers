@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 import { useSettingsStore } from '../stores/settingsStore'
+import { playWin, playDraw } from '../sound'
 import BoardComponent from '../components/board/BoardComponent.vue'
 import GameStatusBar from '../components/panels/GameStatusBar.vue'
 import MoveHistoryPanel from '../components/panels/MoveHistoryPanel.vue'
@@ -63,14 +64,17 @@ watch(
     if (!gs) return
 
     if (status === 'red-wins') {
+      playWin()
       announcement.value = 'Red wins! Game over.'
       return
     }
     if (status === 'black-wins') {
+      playWin()
       announcement.value = 'Black wins! Game over.'
       return
     }
     if (status === 'draw') {
+      playDraw()
       announcement.value = "It's a draw! Game over."
       return
     }
