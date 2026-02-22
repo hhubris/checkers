@@ -110,10 +110,11 @@ watch(
 <style scoped>
 .game-view {
   flex: 1;
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: min(80vh, 1fr) 200px;
+  column-gap: 1.25rem;
+  align-items: start;
   justify-content: center;
-  gap: 1.25rem;
   padding: 1rem;
 }
 
@@ -121,8 +122,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: min(80vh, 100%);
-  flex-shrink: 0;
 }
 
 .board-footer {
@@ -135,13 +134,13 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 200px;
-  flex-shrink: 0;
   padding-top: 3.25rem;
+  align-self: stretch;
 }
 
 @media (max-width: 640px) {
   .game-view {
+    display: flex;
     flex-direction: column;
     align-items: center;
     padding: 0.5rem;
@@ -160,6 +159,7 @@ watch(
   .side-panel {
     width: 100%;
     padding-top: 0;
+    align-self: auto;
   }
 }
 </style>

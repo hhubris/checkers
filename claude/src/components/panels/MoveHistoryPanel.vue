@@ -42,6 +42,8 @@ watch(
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel-title {
@@ -60,15 +62,11 @@ watch(
   margin: 0;
   padding: 0.25rem 0;
   overflow-y: auto;
-  max-height: 240px;
+  flex: 1;
+  min-height: 0;
   scroll-behavior: smooth;
 }
 
-@media (max-width: 640px) {
-  .history-list {
-    max-height: 130px;
-  }
-}
 
 .entry {
   display: flex;
