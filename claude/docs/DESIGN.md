@@ -70,10 +70,10 @@ src/
     panels/
       MoveHistoryPanel.vue
       GameStatusBar.vue
-    ui/
       HintButton.vue
       GameOverModal.vue
-      ThemeSelector.vue
+
+  sound.ts               # Web Audio API sound effects
 
   views/
     HomeView.vue        # Setup screen
@@ -97,8 +97,10 @@ type SquareNumber = number  // 1–32
 
 type Color = 'red' | 'black'
 type Difficulty = 'easy' | 'medium' | 'hard'
-type GameStatus = 'playing' | 'red-wins' | 'black-wins'
+type GameStatus = 'playing' | 'red-wins' | 'black-wins' | 'draw'
 type PlayMode = 'hvh' | 'hva' | 'ava'
+type PlayerType = 'human' | 'ai'
+type ThemeId = 'classic' | 'ocean'
 
 interface Piece {
   color: Color
@@ -113,6 +115,7 @@ interface Move {
   to: SquareNumber
   captures: SquareNumber[]  // squares cleared during jump(s)
   promotesToKing: boolean
+  path: SquareNumber[]      // all squares visited (from + intermediates + to)
 }
 
 interface HistoryEntry {
@@ -129,6 +132,7 @@ interface GameState {
   status: GameStatus
   capturedByRed: number     // count of black pieces captured
   capturedByBlack: number   // count of red pieces captured
+  movesSinceCapture: number // resets on capture; draw at 40
 }
 
 // UI-only state lives in the Pinia store, not in GameState
@@ -183,8 +187,9 @@ for odd vs even rows.
 ### 5.3 `gameState.ts`
 - `applyMoveToState(state, move): GameState` — immutable; returns
   new state with updated board, turn, history, and status
-- `detectStatus(board, nextTurn): GameStatus` — returns win if
-  next player has no pieces or no moves
+- `detectStatus(board, nextTurn, movesSinceCapture): GameStatus`
+  — returns win if next player has no pieces or no moves,
+  or `'draw'` after 40 consecutive half-moves without a capture
 - `buildHistoryEntry(move, board, moveNumber, color): HistoryEntry`
 
 ### 5.4 `notation.ts`
@@ -255,12 +260,13 @@ Owns all game and UI state. Key actions:
 ### 7.2 `settingsStore.ts`
 Persisted to `localStorage`.
 
-| Field        | Type         | Default     |
-|--------------|--------------|-------------|
-| `theme`      | `ThemeId`    | `'classic'` |
-| `redPlayer`  | `PlayerType` | `'human'`   |
-| `blackPlayer`| `PlayerType` | `'ai'`      |
-| `difficulty` | `Difficulty` | `'medium'`  |
+| Field             | Type         | Default     |
+|-------------------|--------------|-------------|
+| `theme`           | `ThemeId`    | `'classic'` |
+| `redPlayer`       | `PlayerType` | `'human'`   |
+| `blackPlayer`     | `PlayerType` | `'ai'`      |
+| `redDifficulty`   | `Difficulty` | `'medium'`  |
+| `blackDifficulty` | `Difficulty` | `'medium'`  |
 
 ---
 
@@ -273,7 +279,7 @@ Persisted to `localStorage`.
 | `/`     | `HomeView`    | Setup screen             |
 | `/game` | `GameView`    | Active game              |
 
-### 8.2 Layout — Desktop (≥ 768px)
+### 8.2 Layout — Desktop (≥ 640px)
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -293,7 +299,7 @@ Persisted to `localStorage`.
 └─────────────────────────────────────────────┘
 ```
 
-### 8.3 Layout — Mobile (< 768px)
+### 8.3 Layout — Mobile (< 640px)
 
 ```
 ┌───────────────────┐
