@@ -7,12 +7,16 @@ interface WorkerRequest {
 }
 
 interface WorkerResponse {
-  move: Move
+  move?: Move
+  error?: string
 }
 
 self.addEventListener('message', (event: MessageEvent<WorkerRequest>) => {
-  const { state, difficulty } = event.data
-  const move = getAIMove(state, difficulty)
-  const response: WorkerResponse = { move }
-  self.postMessage(response)
+  try {
+    const { state, difficulty } = event.data
+    const move = getAIMove(state, difficulty)
+    self.postMessage({ move } satisfies WorkerResponse)
+  } catch (err) {
+    self.postMessage({ error: String(err) } satisfies WorkerResponse)
+  }
 })

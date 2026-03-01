@@ -11,5 +11,9 @@ export function getAIMove(state: GameState, difficulty: Difficulty): Move {
       return getHeuristicMove(state)
     case 'hard':
       return getMinimaxMove(state)
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Unknown difficulty: ${_exhaustive}`)
+    }
   }
 }

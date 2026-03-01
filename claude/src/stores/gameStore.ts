@@ -38,8 +38,10 @@ function askWorker(state: GameState, difficulty: Difficulty): Promise<Move> {
   const worker = getWorker()
 
   return new Promise<Move>((resolve, reject) => {
-    worker.onmessage = (e: MessageEvent<{ move: Move }>) => {
-      if (workerToken === token) resolve(e.data.move)
+    worker.onmessage = (e: MessageEvent<{ move?: Move; error?: string }>) => {
+      if (workerToken !== token) return
+      if (e.data.error) reject(new Error(e.data.error))
+      else if (e.data.move !== undefined) resolve(e.data.move)
     }
     worker.onerror = (e) => {
       if (workerToken === token) reject(new Error(e.message))

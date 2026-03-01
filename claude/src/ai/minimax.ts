@@ -1,11 +1,8 @@
 import type { GameState, Move, Color } from '../types'
 import { getLegalMoves } from '../engine/moves'
 import { applyMove } from '../engine/board'
+import { opponent } from '../engine/gameState'
 import { evaluate } from './evaluation'
-
-function opponent(color: Color): Color {
-  return color === 'red' ? 'black' : 'red'
-}
 
 // Returns score from `maximizingColor`'s perspective.
 function minimax(

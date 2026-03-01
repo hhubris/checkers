@@ -18,7 +18,7 @@ export function createInitialGameState(): GameState {
   }
 }
 
-function opponent(color: Color): Color {
+export function opponent(color: Color): Color {
   return color === 'red' ? 'black' : 'red'
 }
 
