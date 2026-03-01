@@ -127,14 +127,13 @@ export function getSimpleMoves(board: Board, square: SquareNumber): Move[] {
 
 // Returns all legal moves for the current player.
 // If any jump exists for any piece of that color, only jumps are returned.
-export function getLegalMoves(state: GameState): Move[] {
-  const { board, currentTurn } = state
+export function getLegalMoves(board: Board, color: Color): Move[] {
   const jumps: Move[] = []
   const simples: Move[] = []
 
   for (let sq = 1; sq <= 32; sq++) {
     const piece = board[sq]
-    if (!piece || piece.color !== currentTurn) continue
+    if (!piece || piece.color !== color) continue
     jumps.push(...getJumpsFrom(board, sq))
     simples.push(...getSimpleMoves(board, sq))
   }
@@ -143,7 +142,7 @@ export function getLegalMoves(state: GameState): Move[] {
 }
 
 export function isValidMove(state: GameState, move: Move): boolean {
-  const legal = getLegalMoves(state)
+  const legal = getLegalMoves(state.board, state.currentTurn)
   return legal.some(
     (m) =>
       m.from === move.from &&

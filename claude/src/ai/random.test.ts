@@ -8,7 +8,7 @@ describe('getRandomMove', () => {
   it('returns a legal move from the initial position', () => {
     const state = createInitialGameState()
     const move = getRandomMove(state)
-    const legal = getLegalMoves(state)
+    const legal = getLegalMoves(state.board, state.currentTurn)
     expect(legal.some((m) => m.from === move.from && m.to === move.to)).toBe(
       true,
     )

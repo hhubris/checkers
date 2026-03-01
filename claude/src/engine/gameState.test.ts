@@ -25,15 +25,15 @@ describe('createInitialGameState', () => {
 describe('applyMoveToState', () => {
   it('flips the current turn after a move', () => {
     const s0 = createInitialGameState()
-    const s1 = applyMoveToState(s0, getLegalMoves(s0)[0]!)
+    const s1 = applyMoveToState(s0, getLegalMoves(s0.board, s0.currentTurn)[0]!)
     expect(s1.currentTurn).toBe('red')
-    const s2 = applyMoveToState(s1, getLegalMoves(s1)[0]!)
+    const s2 = applyMoveToState(s1, getLegalMoves(s1.board, s1.currentTurn)[0]!)
     expect(s2.currentTurn).toBe('black')
   })
 
   it('appends an entry to moveHistory', () => {
     const s0 = createInitialGameState()
-    const s1 = applyMoveToState(s0, getLegalMoves(s0)[0]!)
+    const s1 = applyMoveToState(s0, getLegalMoves(s0.board, s0.currentTurn)[0]!)
     expect(s1.moveHistory).toHaveLength(1)
     expect(s1.moveHistory[0]!.color).toBe('black')
     expect(s1.moveHistory[0]!.notation).toBeTruthy()
@@ -41,7 +41,7 @@ describe('applyMoveToState', () => {
 
   it('does not mutate the original state', () => {
     const s0 = createInitialGameState()
-    applyMoveToState(s0, getLegalMoves(s0)[0]!)
+    applyMoveToState(s0, getLegalMoves(s0.board, s0.currentTurn)[0]!)
     expect(s0.currentTurn).toBe('black')
     expect(s0.moveHistory).toHaveLength(0)
   })
@@ -51,7 +51,7 @@ describe('applyMoveToState', () => {
     // Place a red piece where black can jump it: black 11 → red 15 → land 18
     s0.board[15] = { color: 'red', isKing: false }
     s0.board[21] = null
-    const jumps = getLegalMoves(s0).filter((m) => m.captures.length > 0)
+    const jumps = getLegalMoves(s0.board, s0.currentTurn).filter((m) => m.captures.length > 0)
     expect(jumps.length).toBeGreaterThan(0)
     const s1 = applyMoveToState(s0, jumps[0]!)
     expect(s1.capturedByBlack).toBeGreaterThan(0)
@@ -64,9 +64,9 @@ describe('applyMoveToState', () => {
     s0.board[15] = { color: 'red', isKing: false }
     s0.board[20] = { color: 'black', isKing: false }
     // sq 20 (odd, col 8, RIGHT_EDGE): lower-left only → sq 24
-    const s1 = applyMoveToState(s0, getLegalMoves(s0)[0]!)
+    const s1 = applyMoveToState(s0, getLegalMoves(s0.board, s0.currentTurn)[0]!)
     // Red's turn now — make a red move
-    const s2 = applyMoveToState(s1, getLegalMoves(s1)[0]!)
+    const s2 = applyMoveToState(s1, getLegalMoves(s1.board, s1.currentTurn)[0]!)
     expect(['playing', 'red-wins', 'black-wins']).toContain(s2.status)
   })
 
@@ -80,18 +80,18 @@ describe('applyMoveToState', () => {
     // Give red another piece with a legal move so red can "just moved"
     s0.board[22] = { color: 'red', isKing: false }
     s0.currentTurn = 'red'
-    const redMoves = getLegalMoves(s0)
+    const redMoves = getLegalMoves(s0.board, s0.currentTurn)
     expect(redMoves.length).toBeGreaterThan(0)
     const s1 = applyMoveToState(s0, redMoves[0]!)
     // After red moves it's black's turn; black on 29 has no legal moves
-    if (s1.currentTurn === 'black' && getLegalMoves(s1).length === 0) {
+    if (s1.currentTurn === 'black' && getLegalMoves(s1.board, s1.currentTurn).length === 0) {
       expect(s1.status).toBe('red-wins')
     }
   })
 
   it('status stays playing when both sides have moves', () => {
     const s0 = createInitialGameState()
-    const s1 = applyMoveToState(s0, getLegalMoves(s0)[0]!)
+    const s1 = applyMoveToState(s0, getLegalMoves(s0.board, s0.currentTurn)[0]!)
     expect(s1.status).toBe('playing')
   })
 
@@ -99,7 +99,7 @@ describe('applyMoveToState', () => {
     // Pre-set the counter one below the limit, then apply a non-capture move.
     const s0 = createInitialGameState()
     s0.movesSinceCapture = DRAW_MOVE_LIMIT - 1
-    const moves = getLegalMoves(s0).filter((m) => m.captures.length === 0)
+    const moves = getLegalMoves(s0.board, s0.currentTurn).filter((m) => m.captures.length === 0)
     expect(moves.length).toBeGreaterThan(0)
     const s1 = applyMoveToState(s0, moves[0]!)
     expect(s1.status).toBe('draw')

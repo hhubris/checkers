@@ -1,4 +1,4 @@
-import type { Board, Color, SquareNumber, GameState } from '../types'
+import type { Board, Color, SquareNumber } from '../types'
 import { getLegalMoves } from '../engine/moves'
 
 // Center squares bonus (inner 7 squares near the board center)
@@ -40,18 +40,8 @@ export function evaluate(board: Board, color: Color): number {
   }
 
   // Mobility (from the perspective of the color being evaluated)
-  const redState: GameState = {
-    board,
-    currentTurn: 'red',
-    moveHistory: [],
-    status: 'playing',
-    capturedByRed: 0,
-    capturedByBlack: 0,
-    movesSinceCapture: 0,
-  }
-  const blackState: GameState = { ...redState, currentTurn: 'black' }
-  const redMobility = getLegalMoves(redState).length
-  const blackMobility = getLegalMoves(blackState).length
+  const redMobility = getLegalMoves(board, 'red').length
+  const blackMobility = getLegalMoves(board, 'black').length
   score += (redMobility - blackMobility) * 0.05
 
   // Return from the perspective of the given color

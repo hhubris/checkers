@@ -35,8 +35,7 @@ function detectStatus(
   }
 
   // Win: next player has no legal moves.
-  const nextState: GameState = { ...state, currentTurn: nextTurn }
-  if (getLegalMoves(nextState).length === 0) {
+  if (getLegalMoves(state.board, nextTurn).length === 0) {
     return nextTurn === 'black' ? 'red-wins' : 'black-wins'
   }
 

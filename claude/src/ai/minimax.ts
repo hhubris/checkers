@@ -1,4 +1,4 @@
-import type { GameState, Move, Color } from '../types'
+import type { Board, Color, GameState, Move } from '../types'
 import { getLegalMoves } from '../engine/moves'
 import { applyMove } from '../engine/board'
 import { opponent, DRAW_MOVE_LIMIT } from '../engine/gameState'
@@ -6,7 +6,7 @@ import { evaluate } from './evaluation'
 
 // Returns score from `maximizingColor`'s perspective.
 function minimax(
-  board: GameState['board'],
+  board: Board,
   currentTurn: Color,
   maximizingColor: Color,
   depth: number,
@@ -17,16 +17,7 @@ function minimax(
   // Draw: 40 consecutive half-moves without a capture.
   if (movesSinceCapture >= DRAW_MOVE_LIMIT) return 0
 
-  const state: GameState = {
-    board,
-    currentTurn,
-    moveHistory: [],
-    status: 'playing',
-    capturedByRed: 0,
-    capturedByBlack: 0,
-    movesSinceCapture,
-  }
-  const moves = getLegalMoves(state)
+  const moves = getLegalMoves(board, currentTurn)
 
   // Terminal: no moves or leaf node
   if (moves.length === 0 || depth === 0) {
@@ -78,7 +69,7 @@ export function getMinimaxMove(state: GameState, depth = 8): Move {
   if (state.status !== 'playing') {
     throw new Error('getMinimaxMove called on a finished game')
   }
-  const moves = getLegalMoves(state)
+  const moves = getLegalMoves(state.board, state.currentTurn)
   if (moves.length === 0) {
     throw new Error('getMinimaxMove called with no legal moves')
   }

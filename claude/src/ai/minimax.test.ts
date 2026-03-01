@@ -29,14 +29,14 @@ describe('getMinimaxMove', () => {
     const s = createInitialGameState()
     // Depth 2 to keep test fast
     const move = getMinimaxMove(s, 2)
-    const legal = getLegalMoves(s)
+    const legal = getLegalMoves(s.board, s.currentTurn)
     expect(legal.some((m) => m.from === move.from && m.to === move.to)).toBe(true)
   })
 
   it('does not return an illegal move', () => {
     const s = createInitialGameState()
     const move = getMinimaxMove(s, 2)
-    const legal = getLegalMoves(s)
+    const legal = getLegalMoves(s.board, s.currentTurn)
     const found = legal.find((m) => m.from === move.from && m.to === move.to)
     expect(found).toBeDefined()
   })

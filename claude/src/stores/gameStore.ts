@@ -4,51 +4,10 @@ import { createInitialGameState, applyMoveToState } from '../engine/gameState'
 import { getLegalMoves } from '../engine/moves'
 import { getAIMove } from '../ai/index'
 import { getHeuristicMove } from '../ai/heuristic'
-import type { Difficulty, GameState, Move, SquareNumber, UIState } from '../types'
+import { askWorker, terminateWorker } from '../ai/workerService'
+import type { GameState, Move, SquareNumber, UIState } from '../types'
 
 const AI_MIN_DELAY_MS = 400
-
-// ── Web Worker management ────────────────────────────────────
-// Kept outside the Pinia store because Worker instances are
-// non-serializable and should not be reactive.
-
-let aiWorker: Worker | null = null
-let workerToken = 0
-
-function getWorker(): Worker {
-  if (!aiWorker) {
-    aiWorker = new Worker(new URL('../ai/worker.ts', import.meta.url), {
-      type: 'module',
-    })
-  }
-  return aiWorker
-}
-
-function terminateWorker() {
-  if (aiWorker) {
-    aiWorker.terminate()
-    aiWorker = null
-  }
-  // Increment token so any in-flight promise is silently ignored.
-  workerToken++
-}
-
-function askWorker(state: GameState, difficulty: Difficulty): Promise<Move> {
-  const token = ++workerToken
-  const worker = getWorker()
-
-  return new Promise<Move>((resolve, reject) => {
-    worker.onmessage = (e: MessageEvent<{ move?: Move; error?: string }>) => {
-      if (workerToken !== token) return
-      if (e.data.error) reject(new Error(e.data.error))
-      else if (e.data.move !== undefined) resolve(e.data.move)
-    }
-    worker.onerror = (e) => {
-      if (workerToken === token) reject(new Error(e.message))
-    }
-    worker.postMessage({ state, difficulty })
-  })
-}
 
 // ── Store ────────────────────────────────────────────────────
 
@@ -79,7 +38,7 @@ export const useGameStore = defineStore('game', {
       const currentPlayer =
         gs.currentTurn === 'red' ? settings.redPlayer : settings.blackPlayer
       if (currentPlayer !== 'human') return new Set()
-      const moves = getLegalMoves(gs)
+      const moves = getLegalMoves(gs.board, gs.currentTurn)
       if (!moves.some((m) => m.captures.length > 0)) return new Set()
       return new Set(moves.filter((m) => m.captures.length > 0).map((m) => m.from))
     },
@@ -117,7 +76,7 @@ export const useGameStore = defineStore('game', {
       // Select the piece at n if it belongs to the current player
       const piece = gs.board[n]
       if (piece && piece.color === gs.currentTurn) {
-        const legalMoves = getLegalMoves(gs)
+        const legalMoves = getLegalMoves(gs.board, gs.currentTurn)
         const movesFromN = legalMoves.filter((m) => m.from === n)
         this.uiState = {
           ...ui,

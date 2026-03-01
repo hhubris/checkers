@@ -28,7 +28,7 @@ describe('getHeuristicMove', () => {
   it('returns a legal move from the initial position', () => {
     const s = createInitialGameState()
     const move = getHeuristicMove(s)
-    const legal = getLegalMoves(s)
+    const legal = getLegalMoves(s.board, s.currentTurn)
     expect(legal.some((m) => m.from === move.from && m.to === move.to)).toBe(true)
   })
 

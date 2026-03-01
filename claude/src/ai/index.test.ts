@@ -15,7 +15,7 @@ describe('getAIMove', () => {
         difficulty === 'hard'
           ? getAIMove({ ...state }, difficulty)
           : getAIMove(state, difficulty)
-      const legal = getLegalMoves(state)
+      const legal = getLegalMoves(state.board, state.currentTurn)
       expect(legal.some((m) => m.from === move.from && m.to === move.to)).toBe(
         true,
       )

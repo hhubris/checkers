@@ -7,7 +7,7 @@ export function getHeuristicMove(state: GameState): Move {
   if (state.status !== 'playing') {
     throw new Error('getHeuristicMove called on a finished game')
   }
-  const moves = getLegalMoves(state)
+  const moves = getLegalMoves(state.board, state.currentTurn)
   if (moves.length === 0) {
     throw new Error('getHeuristicMove called with no legal moves')
   }

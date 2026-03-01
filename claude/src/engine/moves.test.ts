@@ -1,20 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getSimpleMoves, getJumpsFrom, getLegalMoves } from './moves'
 import { createInitialBoard } from './board'
-import type { Board, GameState } from '../types'
-
-// Minimal GameState builder for tests
-function state(board: Board, turn: GameState['currentTurn'] = 'black'): GameState {
-  return {
-    board,
-    currentTurn: turn,
-    moveHistory: [],
-    status: 'playing',
-    capturedByRed: 0,
-    capturedByBlack: 0,
-    movesSinceCapture: 0,
-  }
-}
+import type { Board } from '../types'
 
 // Build a sparse board from a descriptor array of [square, color, isKing]
 function sparse(
@@ -161,14 +148,14 @@ describe('getLegalMoves', () => {
     // Remove all Black pieces except sq 9; no red within jump range
     for (let i = 1; i <= 12; i++) board[i] = null
     board[9] = { color: 'black', isKing: false }
-    const moves = getLegalMoves(state(board, 'black'))
+    const moves = getLegalMoves(board, 'black')
     expect(moves.every((m) => m.captures.length === 0)).toBe(true)
   })
 
   it('mandatory jump: returns only jumps when a jump is available', () => {
     // Black on 11, red on 15 (capturable), red on 20 (not involved)
     const board = sparse([[11, 'black'], [15, 'red'], [20, 'red']])
-    const moves = getLegalMoves(state(board, 'black'))
+    const moves = getLegalMoves(board, 'black')
     expect(moves.every((m) => m.captures.length > 0)).toBe(true)
   })
 
@@ -179,13 +166,13 @@ describe('getLegalMoves', () => {
       [9, 'black'], [14, 'red'],
       [11, 'black'], [16, 'red'],
     ])
-    const moves = getLegalMoves(state(board, 'black'))
+    const moves = getLegalMoves(board, 'black')
     const froms = [...new Set(moves.map((m) => m.from))].sort((a, b) => a - b)
     expect(froms).toEqual([9, 11])
   })
 
   it('returns empty when current player has no pieces', () => {
     const board = sparse([[15, 'red']])
-    expect(getLegalMoves(state(board, 'black'))).toEqual([])
+    expect(getLegalMoves(board, 'black')).toEqual([])
   })
 })
