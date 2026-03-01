@@ -3,7 +3,24 @@
     "allow": [
       "Bash(mise exec:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(mise run build:*)",
+      "Bash(mise run test:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.smashingmagazine.com)",
+      "WebFetch(domain:freefrontend.com)",
+      "WebFetch(domain:www.frontendplanet.com)",
+      "WebFetch(domain:frontend.horse)",
+      "WebFetch(domain:www.arc.id.au)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.joshwcomeau.com)",
+      "Bash(tail:*)",
+      "Bash(git:*)",
+      "Bash(awk length > 80:*)",
+      "Bash(grep:*)",
+      "Bash(node:*)"
     ]
   }
 }

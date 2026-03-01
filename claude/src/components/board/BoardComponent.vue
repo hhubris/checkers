@@ -1,32 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onUnmounted } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
-import { useSettingsStore } from '../../stores/settingsStore'
-import { getLegalMoves } from '../../engine/moves'
+import { squareAt, squareGridPos } from '../../engine/board'
 import { playMove, playCapture, playKing } from '../../sound'
 import SquareComponent from './SquareComponent.vue'
 import PieceComponent from './PieceComponent.vue'
 import type { Piece, SquareNumber } from '../../types'
 
 const game = useGameStore()
-const settings = useSettingsStore()
-
-// ── Grid helpers ─────────────────────────────────────────────
-
-function squareAt(row: number, col: number): SquareNumber | null {
-  if ((row + col) % 2 === 0) return null
-  const darkIndex = row % 2 === 0 ? (col - 1) / 2 : col / 2
-  return row * 4 + darkIndex + 1
-}
-
-// Compute the top-left corner of a square as a % of board size.
-function squareGridPos(sq: SquareNumber) {
-  const idx = sq - 1
-  const row = Math.floor(idx / 4)
-  const darkIndex = idx % 4
-  const col = row % 2 === 0 ? darkIndex * 2 + 1 : darkIndex * 2
-  return { x: col * 12.5, y: row * 12.5 }
-}
 
 const rows = computed(() => {
   const result: { key: string; square: SquareNumber | null }[][] = []
@@ -84,20 +65,6 @@ const lastMoveSquares = computed(() => {
   return m ? new Set<SquareNumber>([m.from, m.to]) : new Set<SquareNumber>()
 })
 
-// Squares whose pieces have mandatory captures this turn.
-// Only shown to the human player before a piece is selected.
-const mustJumpSquares = computed((): Set<SquareNumber> => {
-  const gs = game.gameState
-  if (!gs || gs.status !== 'playing') return new Set()
-  if (game.uiState.selectedSquare !== null) return new Set()
-  const currentPlayer =
-    gs.currentTurn === 'red' ? settings.redPlayer : settings.blackPlayer
-  if (currentPlayer !== 'human') return new Set()
-  const moves = getLegalMoves(gs)
-  if (!moves.some((m) => m.captures.length > 0)) return new Set()
-  return new Set(moves.filter((m) => m.captures.length > 0).map((m) => m.from))
-})
-
 // ── Animation state ──────────────────────────────────────────
 
 const animating = ref(false)
@@ -107,7 +74,14 @@ const flyingY = ref(0)
 const flyingTransition = ref(false)
 const hiddenSquares = ref(new Set<SquareNumber>())
 const promotedSquare = ref<SquareNumber | null>(null)
+// animToken is intentionally non-reactive — making it a ref would trigger
+// unnecessary renders; it is only used to cancel stale animation callbacks.
 let animToken = 0
+let promotionTimer: ReturnType<typeof setTimeout> | null = null
+
+onUnmounted(() => {
+  if (promotionTimer !== null) clearTimeout(promotionTimer)
+})
 
 function doubleRaf(): Promise<void> {
   return new Promise((resolve) =>
@@ -180,8 +154,9 @@ watch(
     if (move.promotesToKing) {
       playKing()
       promotedSquare.value = move.to
-      setTimeout(() => {
+      promotionTimer = setTimeout(() => {
         if (token === animToken) promotedSquare.value = null
+        promotionTimer = null
       }, 700)
     }
 
@@ -255,7 +230,7 @@ function squareLabel(square: SquareNumber): string {
     parts.push(step ? `move destination, step ${step}` : 'move destination')
   } else if (intermediateSquares.value.has(square)) {
     parts.push(`jump step ${pathStepNumbers.value.get(square)}`)
-  } else if (mustJumpSquares.value.has(square)) {
+  } else if (game.mustJumpSquares.has(square)) {
     parts.push('must jump')
   } else if (hintedSquares.value.has(square)) {
     parts.push('hint')
@@ -295,7 +270,7 @@ function squareLabel(square: SquareNumber): string {
         :stepNumber="cell.square !== null ? pathStepNumbers.get(cell.square) : undefined"
         :isHinted="cell.square !== null && hintedSquares.has(cell.square)"
         :isLastMove="cell.square !== null && lastMoveSquares.has(cell.square)"
-        :isMustJump="cell.square !== null && mustJumpSquares.has(cell.square)"
+        :isMustJump="cell.square !== null && game.mustJumpSquares.has(cell.square)"
         :squareTabindex="
           cell.square !== null ? (cell.square === focusedSquare ? 0 : -1) : undefined
         "

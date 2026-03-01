@@ -1,4 +1,4 @@
-import type { Board, Color, Move, Piece, SquareNumber } from '../types'
+import type { Board, Color, Move, SquareNumber } from '../types'
 
 // Standard American checkers: 32 playable dark squares 1–32.
 // Row 1 (Black's back rank) at top, Row 8 (Red's back rank) at bottom.
@@ -113,6 +113,25 @@ export function isPromotionSquare(
     : RED_PROMO.has(square)
 }
 
+// ── Board ↔ grid coordinate helpers ──────────────────────────
+// Used by the board component to map squares to CSS positions.
+// row and col are 0-indexed (0–7).
+
+export function squareAt(row: number, col: number): SquareNumber | null {
+  if ((row + col) % 2 === 0) return null
+  const darkIndex = row % 2 === 0 ? (col - 1) / 2 : col / 2
+  return row * 4 + darkIndex + 1
+}
+
+// Returns the top-left corner of a square as a % of board size.
+export function squareGridPos(sq: SquareNumber): { x: number; y: number } {
+  const idx = sq - 1
+  const row = Math.floor(idx / 4)
+  const darkIndex = idx % 4
+  const col = row % 2 === 0 ? darkIndex * 2 + 1 : darkIndex * 2
+  return { x: col * 12.5, y: row * 12.5 }
+}
+
 export function createInitialBoard(): Board {
   const board: Board = new Array(33).fill(null)
   for (let i = 1; i <= 12; i++) board[i] = { color: 'black', isKing: false }
@@ -126,7 +145,8 @@ export function cloneBoard(board: Board): Board {
 
 export function applyMove(board: Board, move: Move): Board {
   const next = cloneBoard(board)
-  const piece = next[move.from] as Piece
+  const piece = next[move.from]
+  if (!piece) throw new Error(`applyMove: no piece at square ${move.from}`)
   next[move.from] = null
   for (const cap of move.captures) next[cap] = null
   next[move.to] = move.promotesToKing

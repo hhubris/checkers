@@ -68,14 +68,28 @@ export const useGameStore = defineStore('game', {
     uiState: initialUIState(),
   }),
 
+  getters: {
+    // Squares whose pieces must capture this turn. Only populated for the
+    // human player before a piece is selected; empty during AI turns.
+    mustJumpSquares(): Set<SquareNumber> {
+      const gs = this.gameState
+      if (!gs || gs.status !== 'playing') return new Set()
+      if (this.uiState.selectedSquare !== null) return new Set()
+      const settings = useSettingsStore()
+      const currentPlayer =
+        gs.currentTurn === 'red' ? settings.redPlayer : settings.blackPlayer
+      if (currentPlayer !== 'human') return new Set()
+      const moves = getLegalMoves(gs)
+      if (!moves.some((m) => m.captures.length > 0)) return new Set()
+      return new Set(moves.filter((m) => m.captures.length > 0).map((m) => m.from))
+    },
+  },
+
   actions: {
     startGame() {
       terminateWorker()
       this.gameState = createInitialGameState()
       this.uiState = initialUIState()
-
-      const settings = useSettingsStore()
-      document.documentElement.setAttribute('data-theme', settings.theme)
 
       if (this._isAITurn()) this.triggerAI()
     },
@@ -144,9 +158,10 @@ export const useGameStore = defineStore('game', {
           new Promise<void>((r) => setTimeout(r, AI_MIN_DELAY_MS)),
         ])
         move = result
-      } catch {
-        // Worker failed — keep the minimum delay so Vue can render each
-        // move before the next one begins, even on the main thread.
+      } catch (err) {
+        console.error('[AI Worker] failed, falling back to main thread:', err)
+        // Keep the minimum delay so Vue can render each move before the
+        // next one begins, even on the main thread.
         await new Promise<void>((r) => setTimeout(r, AI_MIN_DELAY_MS))
         move = getAIMove(stateCopy, difficulty)
       }

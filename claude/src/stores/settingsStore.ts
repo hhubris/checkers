@@ -11,10 +11,27 @@ interface SettingsState {
 
 const STORAGE_KEY = 'checkers-settings'
 
+const VALID_THEMES = new Set<ThemeId>(['classic', 'ocean'])
+const VALID_DIFFICULTIES = new Set<Difficulty>(['easy', 'medium', 'hard'])
+const VALID_PLAYERS = new Set<PlayerType>(['human', 'ai'])
+
+function sanitize(raw: Record<string, unknown>): Partial<SettingsState> {
+  const clean: Partial<SettingsState> = {}
+  if (VALID_THEMES.has(raw.theme as ThemeId)) clean.theme = raw.theme as ThemeId
+  if (VALID_PLAYERS.has(raw.redPlayer as PlayerType)) clean.redPlayer = raw.redPlayer as PlayerType
+  if (VALID_PLAYERS.has(raw.blackPlayer as PlayerType)) clean.blackPlayer = raw.blackPlayer as PlayerType
+  if (VALID_DIFFICULTIES.has(raw.redDifficulty as Difficulty)) clean.redDifficulty = raw.redDifficulty as Difficulty
+  if (VALID_DIFFICULTIES.has(raw.blackDifficulty as Difficulty)) clean.blackDifficulty = raw.blackDifficulty as Difficulty
+  return clean
+}
+
 function loadFromStorage(): Partial<SettingsState> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Partial<SettingsState>) : {}
+    if (!raw) return {}
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    return sanitize(parsed as Record<string, unknown>)
   } catch {
     return {}
   }

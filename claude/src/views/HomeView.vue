@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useGameStore } from '../stores/gameStore'
@@ -10,7 +10,6 @@ const settings = useSettingsStore()
 const game = useGameStore()
 
 // ── Local form state (seeded from persisted settings) ────────
-type HumanSide = 'red' | 'black'
 
 const mode = ref<PlayMode>(
   settings.redPlayer === 'human' && settings.blackPlayer === 'human'
@@ -36,9 +35,27 @@ const theme = ref<ThemeId>(settings.theme)
 const isHvA = computed(() => mode.value === 'hva')
 const isAvA = computed(() => mode.value === 'ava')
 
-onMounted(() => {
-  document.documentElement.setAttribute('data-theme', settings.theme)
-})
+// Typed option arrays — prevents TypeScript from widening val to string,
+// which would require unsafe 'as ThemeId' casts in the template.
+type HumanSide = 'red' | 'black'
+const MODE_OPTIONS: [PlayMode, string][] = [
+  ['hvh', 'Human vs Human'],
+  ['hva', 'Human vs AI'],
+  ['ava', 'AI vs AI'],
+]
+const SIDE_OPTIONS: [HumanSide, string][] = [
+  ['red', 'Red (goes second)'],
+  ['black', 'Black (goes first)'],
+]
+const DIFF_OPTIONS: [Difficulty, string][] = [
+  ['easy', 'Easy'],
+  ['medium', 'Medium'],
+  ['hard', 'Hard'],
+]
+const THEME_OPTIONS: [ThemeId, string][] = [
+  ['classic', 'Classic'],
+  ['ocean', 'Ocean'],
+]
 
 function applyTheme(t: ThemeId) {
   theme.value = t
@@ -93,7 +110,7 @@ function startGame() {
         <label class="section-label">Play mode</label>
         <div class="toggle-group" role="radiogroup" aria-label="Play mode">
           <label
-            v-for="[val, text] in [['hvh', 'Human vs Human'], ['hva', 'Human vs AI'], ['ava', 'AI vs AI']]"
+            v-for="[val, text] in MODE_OPTIONS"
             :key="val"
             :class="['toggle', { active: mode === val }]"
           >
@@ -108,7 +125,7 @@ function startGame() {
         <label class="section-label">You play as</label>
         <div class="toggle-group" role="radiogroup" aria-label="Your side">
           <label
-            v-for="[val, text] in [['red', 'Red (goes second)'], ['black', 'Black (goes first)']]"
+            v-for="[val, text] in SIDE_OPTIONS"
             :key="val"
             :class="['toggle', { active: humanSide === val }]"
           >
@@ -124,7 +141,7 @@ function startGame() {
         <label class="section-label">AI difficulty</label>
         <div class="toggle-group" role="radiogroup" aria-label="AI difficulty">
           <label
-            v-for="[val, text] in [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]"
+            v-for="[val, text] in DIFF_OPTIONS"
             :key="val"
             :class="['toggle', { active: aiDifficulty === val }]"
           >
@@ -148,7 +165,7 @@ function startGame() {
           </label>
           <div class="toggle-group" role="radiogroup" aria-label="Red difficulty">
             <label
-              v-for="[val, text] in [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]"
+              v-for="[val, text] in DIFF_OPTIONS"
               :key="val"
               :class="['toggle', { active: redDifficulty === val }]"
             >
@@ -169,7 +186,7 @@ function startGame() {
           </label>
           <div class="toggle-group" role="radiogroup" aria-label="Black difficulty">
             <label
-              v-for="[val, text] in [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]"
+              v-for="[val, text] in DIFF_OPTIONS"
               :key="val"
               :class="['toggle', { active: blackDifficulty === val }]"
             >
@@ -191,10 +208,10 @@ function startGame() {
         <label class="section-label">Theme</label>
         <div class="toggle-group" role="radiogroup" aria-label="Theme">
           <label
-            v-for="[val, text] in [['classic', 'Classic'], ['ocean', 'Ocean']]"
+            v-for="[val, text] in THEME_OPTIONS"
             :key="val"
             :class="['toggle', { active: theme === val }]"
-            @click="applyTheme(val as ThemeId)"
+            @click="applyTheme(val)"
           >
             <input
               type="radio"

@@ -2,21 +2,18 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
-import { useSettingsStore } from '../stores/settingsStore'
 import { playWin, playDraw } from '../sound'
+import { buildAnnouncement } from '../engine/notation'
 import BoardComponent from '../components/board/BoardComponent.vue'
 import GameStatusBar from '../components/panels/GameStatusBar.vue'
 import MoveHistoryPanel from '../components/panels/MoveHistoryPanel.vue'
 import HintButton from '../components/panels/HintButton.vue'
 import GameOverModal from '../components/panels/GameOverModal.vue'
-import type { HistoryEntry } from '../types'
 
 const game = useGameStore()
-const settings = useSettingsStore()
 const router = useRouter()
 
 onMounted(() => {
-  document.documentElement.setAttribute('data-theme', settings.theme)
   // If no game is in progress (navigated directly), go home.
   if (!game.gameState) {
     router.replace('/')
@@ -27,32 +24,6 @@ onMounted(() => {
 // ── ARIA live region ─────────────────────────────────────────
 
 const announcement = ref('')
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
-function buildAnnouncement(entry: HistoryEntry): string {
-  const { color, move } = entry
-  const cap = move.captures.length
-  const parts: string[] = []
-
-  if (cap === 0) {
-    parts.push(`${capitalize(color)} moves from ${move.from} to ${move.to}.`)
-  } else {
-    const last = move.path[move.path.length - 1]
-    parts.push(
-      `${capitalize(color)} jumps from ${move.path[0]} to ${last}, ` +
-        `${cap} piece${cap > 1 ? 's' : ''} captured.`,
-    )
-  }
-
-  if (move.promotesToKing) {
-    parts.push(`${capitalize(color)} is kinged on square ${move.to}.`)
-  }
-
-  return parts.join(' ')
-}
 
 watch(
   [

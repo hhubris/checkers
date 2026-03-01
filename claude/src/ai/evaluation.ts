@@ -1,7 +1,7 @@
 import type { Board, Color, SquareNumber, GameState } from '../types'
 import { getLegalMoves } from '../engine/moves'
 
-// Center squares bonus (the 8 center squares of the board)
+// Center squares bonus (inner 7 squares near the board center)
 const CENTER_SQUARES = new Set<SquareNumber>([11, 12, 15, 16, 17, 20, 21])
 
 // Returns the row number (1–8) that a square is on.
